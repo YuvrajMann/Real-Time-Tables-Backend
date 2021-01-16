@@ -22,8 +22,12 @@ var tableSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    tableName: {
+      type: String,
+      required: true,
+    },
     periods: {
-      type: Number,
+      type: [Schema.Types.Mixed],
       required: true,
     },
     table: [SpecificDay],

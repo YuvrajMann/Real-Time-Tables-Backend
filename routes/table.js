@@ -3,7 +3,7 @@ var tableRouter = express.Router();
 var bodyParser = require("body-parser");
 var authenticate = require("../authenticate");
 var Tables = require("../models/tables");
-const Table = require("../models/tables");
+var Logs = require("../models/logs.js");
 tableRouter.use(bodyParser.json());
 
 var days = {
@@ -22,7 +22,10 @@ tableRouter.get("/", authenticate.verifyUser, (req, res, next) => {
       (tables) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
-        res.json(tables);
+        var results = {};
+        results["results"] = tables;
+        results["count"] = tables.length;
+        res.json(results);
       },
       (err) => next(err)
     )
@@ -112,10 +115,29 @@ tableRouter
         (table) => {
           var update = req.body;
           for (var key of Object.keys(update)) {
-            if (days.hasOwnProperty(key)) {
+            if (key == "tableName") {
+              table["tableName"] = update["tableName"];
+            } else if (days.hasOwnProperty(key)) {
               const period = update[key].period;
               const new_sub = update[key].new_subject;
               table.table[days[key]].schedule[period] = new_sub;
+              var log = {};
+              log["table"] = req.params.tableId;
+              log["user"] = req.user._id;
+              log["day"] = key;
+              log["log"] = update[key];
+              Logs.create(log)
+                .then(
+                  (new_log) => {
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json(new_log);
+                  },
+                  (err) => next(err)
+                )
+                .catch((err) => {
+                  next(err);
+                });
             } else {
               var err = new Error("Invalid day/key detected");
               next(err);
