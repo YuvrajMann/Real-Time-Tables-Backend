@@ -22,6 +22,10 @@ var tableSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    subjects: {
+      type: Schema.Types.Mixed,
+      required: true,
+    },
     tableName: {
       type: String,
       required: true,

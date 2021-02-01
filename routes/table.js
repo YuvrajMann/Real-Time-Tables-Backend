@@ -33,6 +33,7 @@ tableRouter.get("/", authenticate.verifyUser, (req, res, next) => {
       next(err);
     });
 });
+
 tableRouter
   .post("/", authenticate.verifyUser, (req, res, next) => {
     req.body.user = req.user._id;
@@ -118,47 +119,49 @@ tableRouter
             if (key == "tableName") {
               table["tableName"] = update["tableName"];
             } else if (days.hasOwnProperty(key)) {
-              const period = update[key].period;
-              const new_sub = update[key].new_subject;
-              table.table[days[key]].schedule[period] = new_sub;
-              var log = {};
-              log["table"] = req.params.tableId;
-              log["user"] = req.user._id;
-              log["day"] = key;
-              log["log"] = update[key];
-              Logs.create(log)
-                .then(
-                  (new_log) => {
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(new_log);
-                  },
-                  (err) => next(err)
-                )
-                .catch((err) => {
-                  next(err);
-                });
+              let newSchedule = update[key];
+              let up_table = table["table"];
+              for (var period of Object.keys(newSchedule)) {
+                if (newSchedule.hasOwnProperty(period)) {
+                  let change = newSchedule[period];
+                  up_table[days[key]]["schedule"][period] = change;
+                  var log = {};
+                  log["table"] = req.params.tableId;
+                  log["user"] = req.user._id;
+                  log["day"] = key;
+                  log["log"] = change;
+                  Logs.create(log)
+                    .then(
+                      (new_log) => {},
+                      (err) => next(err)
+                    )
+                    .catch((err) => {
+                      next(err);
+                    });
+                }
+              }
+              table["table"] = up_table;
             } else {
               var err = new Error("Invalid day/key detected");
               next(err);
             }
           }
-          table
-            .save()
+
+          Tables.findByIdAndUpdate(table._id, { $set: table }, { new: true })
+            .populate("user")
             .then(
-              (table) => {
-                Tables.findById(table._id)
-                  .populate("user")
-                  .then((pop_table) => {
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(pop_table);
-                  })
-                  .catch((err) => next(err));
+              (pop_table) => {
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json(pop_table);
               },
-              (err) => next(err)
+              (err) => {
+                next(err);
+              }
             )
-            .catch((err) => next(err));
+            .catch((err) => {
+              next(err);
+            });
         },
         (err) => {
           next(err);
@@ -172,4 +175,38 @@ tableRouter
     );
     next(err);
   });
+tableRouter.get(
+  "/:tableId/subjects",
+  authenticate.verifyUser,
+  (req, res, next) => {
+    Tables.findById(req.params.tableId)
+      .then((table) => {
+        console.log(table);
+        var subInfo = table.subjects;
+        if (!subInfo) {
+          var err = new Error("Subject Info not available");
+          next(err);
+        } else {
+          var result = [];
+          for (var i = 1; i <= subInfo.numberOfSub; ++i) {
+            const s1 = `Sub_${i}_Name`;
+            const s2 = `Sub_${i}_Teacher`;
+            let obj = {};
+            obj["name"] = subInfo.subInfo[s1];
+            obj["teacher"] = subInfo.subInfo[s2];
+            result.push(obj);
+          }
+          var fres = {};
+          fres["count"] = subInfo.numberOfSub;
+          fres["subjects"] = result;
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(fres);
+        }
+      })
+      .catch((err) => {
+        next(err);
+      });
+  }
+);
 module.exports = tableRouter;
