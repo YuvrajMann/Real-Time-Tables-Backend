@@ -6,9 +6,22 @@ var authenticate = require("../authenticate");
 router.use(bodyParser.json());
 const User = require("../models/users");
 
+router.get("/", authenticate.verifyUser, (req, res, next) => {
+  console.log(req.user);
+  res.statusCode = 200;
+  res.json(req.user);
+});
 router.post("/signup", (req, res, next) => {
   User.register(
-    new User({ username: req.body.username }),
+    new User({
+      username: req.body.username,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      age: req.body.age,
+      sex: req.body.sex,
+      institutionName: req.body.institutionName,
+      standard: req.body.standard,
+    }),
     req.body.password,
     (err, user) => {
       if (err) {

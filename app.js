@@ -15,6 +15,7 @@ var config = require("./config");
 var tableRouter = require("./routes/table.js");
 var logRouter = require("./routes/log.js");
 var cors = require("./routes/cors");
+var uploadRouter = require("./routes/uploadRouter");
 app.use(logger("dev"));
 
 const connect = mongoose.connect(config.mongoUrl);
@@ -42,6 +43,7 @@ app.all("*", (req, res, next) => {
     );
   }
 });
+app.use("/public", express.static(path.resolve(__dirname, "public")));
 app.use(cors.cors);
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -68,11 +70,10 @@ app.use("/users", usersRouter);
 
 // app.use(auth);
 
-app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/", indexRouter);
 app.use("/table", tableRouter);
 app.use("/logs", logRouter);
+app.use("/upload", uploadRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
