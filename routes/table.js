@@ -85,12 +85,35 @@ tableRouter
   .route("/:tableId")
   .get(authenticate.verifyUser, (req, res, next) => {
     Tables.findById(req.params.tableId)
-      .populate("user")
       .then(
         (table) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json(table);
+          if (table) {
+            if (table.user.toString() == req.user._id.toString()) {
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "application/json");
+              res.json(table);
+            } else {
+              console.log(table.user, req.user._id);
+              var view_bool = [];
+
+              view_bool = table.view_access.filter((vuser) => {
+                return vuser == table.user;
+              });
+              if (view_bool.length > 0) {
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json(table);
+              } else if (view_bool.length == 0) {
+                var err = new Error();
+                err.status = 403;
+                err.message = "You don't have view access for this table";
+                next(err);
+              }
+            }
+          } else {
+            var error = new Error("Table with specified id not found");
+            next(error);
+          }
         },
         (err) => next(err)
       )
@@ -114,54 +137,82 @@ tableRouter
     Tables.findById(req.params.tableId)
       .then(
         (table) => {
-          var update = req.body;
-          for (var key of Object.keys(update)) {
-            if (key == "tableName") {
-              table["tableName"] = update["tableName"];
-            } else if (days.hasOwnProperty(key)) {
-              let newSchedule = update[key];
-              let up_table = table["table"];
-              for (var period of Object.keys(newSchedule)) {
-                if (newSchedule.hasOwnProperty(period)) {
-                  let change = newSchedule[period];
-                  up_table[days[key]]["schedule"][period] = change;
-                  var log = {};
-                  log["table"] = req.params.tableId;
-                  log["user"] = req.user._id;
-                  log["day"] = key;
-                  log["log"] = change;
-                  Logs.create(log)
-                    .then(
-                      (new_log) => {},
-                      (err) => next(err)
-                    )
-                    .catch((err) => {
-                      next(err);
-                    });
+          if (table) {
+            var edit_bool = [];
+            edit_bool = table.edit_access.filter((euser) => {
+              return euser == table.user;
+            });
+            if (
+              table.user.toString() == req.user._id.toString() ||
+              edit_bool.length > 0
+            ) {
+              var update = req.body;
+              for (var key of Object.keys(update)) {
+                if (key == "tableName") {
+                  table["tableName"] = update["tableName"];
+                } else if (days.hasOwnProperty(key)) {
+                  let newSchedule = update[key];
+                  let up_table = table["table"];
+                  for (var period of Object.keys(newSchedule)) {
+                    if (newSchedule.hasOwnProperty(period)) {
+                      let change = newSchedule[period];
+                      up_table[days[key]]["schedule"][period] = change;
+                      var log = {};
+                      log["table"] = req.params.tableId;
+                      log["user"] = req.user._id;
+                      log["day"] = key;
+                      log["log"] = {
+                        period: period,
+                        new_sub: change,
+                      };
+
+                      Logs.create(log)
+                        .then(
+                          (new_log) => {
+                            console.log(new_log);
+                          },
+                          (err) => next(err)
+                        )
+                        .catch((err) => {
+                          next(err);
+                        });
+                    }
+                  }
+                  table["table"] = up_table;
+                } else {
+                  var err = new Error("Invalid day/key detected");
+                  next(err);
                 }
               }
-              table["table"] = up_table;
+              Tables.findByIdAndUpdate(
+                table._id,
+                { $set: table },
+                { new: true }
+              )
+                .populate("user")
+                .then(
+                  (pop_table) => {
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json(pop_table);
+                  },
+                  (err) => {
+                    next(err);
+                  }
+                )
+                .catch((err) => {
+                  next(err);
+                });
             } else {
-              var err = new Error("Invalid day/key detected");
+              var err = new Error();
+              err.status = 403;
+              err.message = "You don't have view access for this table";
               next(err);
             }
+          } else {
+            var error = new Error("Table with specified id not found");
+            next(error);
           }
-
-          Tables.findByIdAndUpdate(table._id, { $set: table }, { new: true })
-            .populate("user")
-            .then(
-              (pop_table) => {
-                res.statusCode = 200;
-                res.setHeader("Content-Type", "application/json");
-                res.json(pop_table);
-              },
-              (err) => {
-                next(err);
-              }
-            )
-            .catch((err) => {
-              next(err);
-            });
         },
         (err) => {
           next(err);

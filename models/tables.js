@@ -34,6 +34,8 @@ var tableSchema = new Schema(
       type: [Schema.Types.Mixed],
       required: true,
     },
+    edit_access: [mongoose.Schema.Types.ObjectId],
+    view_access: [mongoose.Schema.Types.ObjectId],
     table: [SpecificDay],
   },
   {

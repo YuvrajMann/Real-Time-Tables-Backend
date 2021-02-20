@@ -25,5 +25,5 @@ var logsSchema = new Schema(
   }
 );
 
-var Logs = mongoose.model("Logs", logsSchema);
-module.exports = Logs;
+var Log = mongoose.model("Log", logsSchema);
+module.exports = Log;

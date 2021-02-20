@@ -7,12 +7,12 @@ var User = new Schema({
     type: Boolean,
     default: false,
   },
-  username: {
-    type: String,
-    required: true,
-  },
   profilePic: {
     type: String,
+  },
+  email: {
+    type: String,
+    required: true,
   },
   firstName: {
     type: String,

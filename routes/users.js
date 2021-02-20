@@ -12,11 +12,13 @@ router.get("/", authenticate.verifyUser, (req, res, next) => {
   res.json(req.user);
 });
 router.post("/signup", (req, res, next) => {
+  console.log(req.body);
   User.register(
     new User({
       username: req.body.username,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
+      email: req.body.email,
+      firstName: req.body.firstname,
+      lastName: req.body.lastname,
       age: req.body.age,
       sex: req.body.sex,
       institutionName: req.body.institutionName,
@@ -25,6 +27,7 @@ router.post("/signup", (req, res, next) => {
     req.body.password,
     (err, user) => {
       if (err) {
+        console.log(err, req.body);
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
         res.json({ err: err });
