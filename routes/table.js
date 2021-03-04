@@ -97,7 +97,7 @@ tableRouter
               var view_bool = [];
 
               view_bool = table.view_access.filter((vuser) => {
-                return vuser == table.user;
+                return vuser.toString() == table.user.toString();
               });
               if (view_bool.length > 0) {
                 res.statusCode = 200;

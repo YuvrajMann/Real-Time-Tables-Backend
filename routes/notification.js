@@ -23,4 +23,22 @@ notificationRouter.route("/").get(authenticate.verifyUser, (req, res, next) => {
       next(err);
     });
 });
+
+notificationRouter
+  .route("/remove/:notificationId")
+  .delete(authenticate.verifyUser, (req, res, next) => {
+    Notification.findByIdAndDelete(req.params.notificationId)
+      .then(
+        (resp) => {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.end("Notification deleted successfully");
+        },
+        (err) => next(err)
+      )
+      .catch((err) => {
+        next(err);
+      });
+  });
+
 module.exports = notificationRouter;

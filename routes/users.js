@@ -11,6 +11,32 @@ router.get("/", authenticate.verifyUser, (req, res, next) => {
   res.statusCode = 200;
   res.json(req.user);
 });
+router.put("/profileChange", authenticate.verifyUser, (req, res, next) => {
+  User.findById(req.user)
+    .then((user) => {
+      var change = req.body;
+      for (var key of Object.keys(change)) {
+        if (change.hasOwnProperty(key)) {
+          console.log(change[key]);
+          user[key] = change[key];
+        }
+      }
+
+      user
+        .save()
+        .then((user) => {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        })
+        .catch((err) => {
+          next(err);
+        });
+    })
+    .catch((err) => {
+      next(err);
+    });
+});
 router.post("/signup", (req, res, next) => {
   console.log(req.body);
   User.register(

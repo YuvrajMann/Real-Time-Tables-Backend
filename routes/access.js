@@ -23,7 +23,7 @@ accessRouter
           } else {
             var edit_bool = [];
             edit_bool = table.edit_access.filter((euser) => {
-              return euser == user._id;
+              return euser.toString() == user._id.toString();
             });
             if (edit_bool.length == 0) {
               res.statusCode = 403;
@@ -53,8 +53,8 @@ accessRouter
 
     Table.findById(table)
       .then((table) => {
+        console.log(table.view_access, user._id);
         if (table) {
-          console.log(table.user, req.user._id);
           if (table.user.toString() == req.user._id.toString()) {
             res.statusCode = 200;
             res.setHeader("Content-Type", "application/json");
@@ -62,8 +62,9 @@ accessRouter
           } else {
             var view_bool = [];
             view_bool = table.view_access.filter((vuser) => {
-              return vuser == user._id;
+              return vuser.toString() == user._id.toString();
             });
+            console.log(view_bool);
             if (view_bool.length == 0) {
               res.statusCode = 403;
               res.setHeader("Content-Type", "application/json");
@@ -83,10 +84,10 @@ accessRouter
         next(err);
       });
   });
+
 accessRouter
   .route("/accessRequest/:tableId")
   .post(authenticate.verifyUser, (req, res, next) => {
-    console.log(table.user.email);
     Table.findById(req.params.tableId)
       .populate("user")
       .then((table) => {
@@ -124,36 +125,61 @@ accessRouter
         (table) => {
           if (table) {
             console.log("edit_access");
-            if (req.body.access_type.toString() == "Edit") {
-              var edit_access = table.edit_access;
-              edit_access.push(req.body.user);
-              table.edit_access = edit_access;
-              table
-                .save()
-                .then((table) => {
-                  res.statusCode = 200;
-                  res.setHeader("Content-Type", "application/json");
-                  res.json(table);
-                })
-                .catch((err) => {
-                  next(err);
-                });
-            } else if (req.body.access_type.toString() == "View") {
-              var view_access = table.view_access;
-              console.log(view_access);
-              view_access.push(req.body.user);
-              table.view_access = view_access;
-              table
-                .save()
-                .then((table) => {
-                  res.statusCode = 200;
-                  res.setHeader("Content-Type", "application/json");
-                  res.json(table);
-                })
-                .catch((err) => {
-                  next(err);
-                });
-            }
+            Notification.findByIdAndRemove(req.body.notification_id)
+              .then((res) => {
+                if (req.body.access_type.toString() == "Edit") {
+                  var edit_access = table.edit_access;
+
+                  var check = edit_access.filter((user) => {
+                    return user._id == req.body.user;
+                  });
+                  console.log("check");
+                  if (check == null) {
+                    edit_access.push(req.body.user);
+                    table.edit_access = edit_access;
+                    table
+                      .save()
+                      .then((table) => {
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json(table);
+                      })
+                      .catch((err) => {
+                        next(err);
+                      });
+                  } else {
+                    var err = new Error();
+                    err.message("User already has view access to this table");
+                    next(err);
+                  }
+                } else if (req.body.access_type.toString() == "View") {
+                  var view_access = table.view_access;
+                  var check = view_access.filter((user) => {
+                    return user._id == req.body.user;
+                  });
+                  console.log("check");
+                  if (check == null) {
+                    console.log(view_access);
+                    view_access.push(req.body.user);
+                    table.view_access = view_access;
+                    table
+                      .save()
+                      .then((table) => {
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json(table);
+                      })
+                      .catch((err) => {
+                        next(err);
+                      });
+                  } else {
+                    var err = new Error();
+                    err.message("User already has edit access to this table");
+                    next(err);
+                  }
+                }
+              })
+              .catch((err) => next(err));
           } else {
             var error = new Error();
             error.status = 402;
