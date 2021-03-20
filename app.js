@@ -31,20 +31,20 @@ connect.then(
   }
 );
 // Secure traffic only
-app.all("*", (req, res, next) => {
-  console.log(req.secure);
-  if (req.secure) {
-    return next();
-  } else {
-    console.log(
-      307,
-      "https://" + req.hostname + ":" + app.get("secPort") + req.url
-    );
-    res.redirect(
-      "https://" + req.hostname + ":" + app.get("secPort") + req.url
-    );
-  }
-});
+// app.all("*", (req, res, next) => {
+//   console.log(req.secure);
+//   if (req.secure) {
+//     return next();
+//   } else {
+//     console.log(
+//       307,
+//       "https://" + req.hostname + ":" + app.get("secPort") + req.url
+//     );
+//     res.redirect(
+//       "https://" + req.hostname + ":" + app.get("secPort") + req.url
+//     );
+//   }
+// });
 app.use("/public", express.static(path.resolve(__dirname, "public")));
 app.use(cors.cors);
 // view engine setup
