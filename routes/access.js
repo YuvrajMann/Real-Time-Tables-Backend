@@ -132,7 +132,7 @@ accessRouter
                 return user._id == req.body.user;
               });
               console.log("check");
-              if (check == null) {
+              if (check.length == 0) {
                 edit_access.push(req.body.user);
                 table.edit_access = edit_access;
                 table

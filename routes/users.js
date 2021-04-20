@@ -5,6 +5,8 @@ var passport = require("passport");
 var authenticate = require("../authenticate");
 router.use(bodyParser.json());
 const User = require("../models/users");
+var jwt = require("jsonwebtoken");
+var config = require("../config.js");
 
 router.get("/", authenticate.verifyUser, (req, res, next) => {
   console.log(req.user);
@@ -111,20 +113,35 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
-router.get("/checkJWTtoken", (req, res) => {
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
-    if (err) return next(err);
+// router.get("/checkJWTtoken", (req, res) => {
+//   passport.authenticate("jwt", { session: false }, (err, user, info) => {
+//     if (err) return next(err);
 
-    if (!user) {
-      res.statusCode = 401;
+//     if (!user) {
+//       res.statusCode = 401;
+//       res.setHeader("Content-Type", "application/json");
+//       return res.json({ status: "JWT invalid!", success: false, err: info });
+//     } else {
+//       res.statusCode = 200;
+//       res.setHeader("Content-Type", "application/json");
+//       return res.json({ status: "JWT valid!", success: true, user: user });
+//     }
+//   })(req, res);
+// });
+
+router.post("/checktoken", (req, res, next) => {
+  let token = req.body.token.toString();
+  jwt.verify(token, config.secretKey, (err, decoded) => {
+    if (err) {
+      res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
-      return res.json({ status: "JWT invalid!", success: false, err: info });
+      res.json({ err: err });
     } else {
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
-      return res.json({ status: "JWT valid!", success: true, user: user });
+      res.end("Token Valid");
     }
-  })(req, res);
+  });
 });
 // router.get("/logout", (req, res) => {
 //   if (req.session) {
