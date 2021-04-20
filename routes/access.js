@@ -124,62 +124,58 @@ accessRouter
       .then(
         (table) => {
           if (table) {
-            console.log("edit_access");
-            Notification.findByIdAndRemove(req.body.notification_id)
-              .then((res) => {
-                if (req.body.access_type.toString() == "Edit") {
-                  var edit_access = table.edit_access;
+            console.log(req.body.notification_id);
+            if (req.body.access_type.toString() == "Edit") {
+              var edit_access = table.edit_access;
 
-                  var check = edit_access.filter((user) => {
-                    return user._id == req.body.user;
-                  });
-                  console.log("check");
-                  if (check == null) {
-                    edit_access.push(req.body.user);
-                    table.edit_access = edit_access;
-                    table
-                      .save()
-                      .then((table) => {
-                        res.statusCode = 200;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json(table);
-                      })
-                      .catch((err) => {
-                        next(err);
-                      });
-                  } else {
-                    var err = new Error();
-                    err.message("User already has view access to this table");
+              var check = edit_access.filter((user) => {
+                return user._id == req.body.user;
+              });
+              console.log("check");
+              if (check == null) {
+                edit_access.push(req.body.user);
+                table.edit_access = edit_access;
+                table
+                  .save()
+                  .then((table) => {
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json(table);
+                  })
+                  .catch((err) => {
                     next(err);
-                  }
-                } else if (req.body.access_type.toString() == "View") {
-                  var view_access = table.view_access;
-                  var check = view_access.filter((user) => {
-                    return user._id == req.body.user;
                   });
-                  console.log("check");
-                  if (check == null) {
-                    console.log(view_access);
-                    view_access.push(req.body.user);
-                    table.view_access = view_access;
-                    table
-                      .save()
-                      .then((table) => {
-                        res.statusCode = 200;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json(table);
-                      })
-                      .catch((err) => {
-                        next(err);
-                      });
-                  } else {
-                    var err = new Error();
-                    err.message("User already has edit access to this table");
+              } else {
+                var err = new Error();
+                err.message("User already has view access to this table");
+                next(err);
+              }
+            } else if (req.body.access_type.toString() == "View") {
+              var view_access = table.view_access;
+              var check = view_access.filter((user) => {
+                return user._id == req.body.user;
+              });
+              console.log(check);
+              if (check.length == 0) {
+                console.log(view_access);
+                view_access.push(req.body.user);
+                table.view_access = view_access;
+                table
+                  .save()
+                  .then((table) => {
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json(table);
+                  })
+                  .catch((err) => {
                     next(err);
-                  }
-                }
-              })
-              .catch((err) => next(err));
+                  });
+              } else {
+                res.send(403, {
+                  error: "User already has access available",
+                });
+              }
+            }
           } else {
             var error = new Error();
             error.status = 402;

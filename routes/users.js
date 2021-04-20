@@ -11,6 +11,21 @@ router.get("/", authenticate.verifyUser, (req, res, next) => {
   res.statusCode = 200;
   res.json(req.user);
 });
+router.get("/:userId", (req, res, next) => {
+  User.findById(req.params.userId)
+    .then(
+      (user) => {
+        res.statusCode = 200;
+        res.json(user);
+      },
+      (err) => {
+        next(err);
+      }
+    )
+    .catch((err) => {
+      next(err);
+    });
+});
 router.put("/profileChange", authenticate.verifyUser, (req, res, next) => {
   User.findById(req.user)
     .then((user) => {

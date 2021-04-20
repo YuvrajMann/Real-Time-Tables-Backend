@@ -20,7 +20,7 @@ var uploadRouter = require("./routes/uploadRouter");
 var notificationRouter = require("./routes/notification.js");
 app.use(logger("dev"));
 
-const connect = mongoose.connect(config.cloudUrl);
+const connect = mongoose.connect(config.mongoUrl);
 
 connect.then(
   (db) => {

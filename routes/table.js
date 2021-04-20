@@ -87,6 +87,7 @@ tableRouter
     Tables.findById(req.params.tableId)
       .then(
         (table) => {
+          console.log(req.params.tableId);
           if (table) {
             if (table.user.toString() == req.user._id.toString()) {
               res.statusCode = 200;
@@ -96,9 +97,13 @@ tableRouter
               console.log(table.user, req.user._id);
               var view_bool = [];
 
-              view_bool = table.view_access.filter((vuser) => {
-                return vuser.toString() == table.user.toString();
+              table.view_access.map((vuser) => {
+                console.log(vuser);
+                if (vuser.toString() == req.user._id) {
+                  view_bool.push(vuser.toString);
+                }
               });
+              console.log(view_bool);
               if (view_bool.length > 0) {
                 res.statusCode = 200;
                 res.setHeader("Content-Type", "application/json");
