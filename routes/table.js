@@ -145,8 +145,9 @@ tableRouter
           if (table) {
             var edit_bool = [];
             edit_bool = table.edit_access.filter((euser) => {
-              return euser == table.user;
+              return euser.toString() == req.user._id.toString();
             });
+            console.log(edit_bool);
             if (
               table.user.toString() == req.user._id.toString() ||
               edit_bool.length > 0

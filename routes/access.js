@@ -7,6 +7,119 @@ const Table = require("../models/tables");
 
 accessRouter.use(bodyParser.json());
 
+//Remove view access of a particular user
+accessRouter
+  .route("/removeAccess/view")
+  .post(authenticate.verifyUser, (req, res, next) => {
+    let user = req.user;
+    let table = req.body.table;
+    let of_user = req.body.ofUser;
+    Table.findById(table)
+      .then((table) => {
+        if (table) {
+          if (table.user.toString() == user._id.toString()) {
+            let viewAccess = table.view_access;
+            var i = 0;
+            let f = false;
+            while (i < viewAccess.length) {
+              console.log(viewAccess[i], of_user);
+              if (viewAccess[i].toString() == of_user.toString()) {
+                f = true;
+                viewAccess.splice(i, 1);
+              } else {
+                ++i;
+              }
+            }
+
+            if (!f) {
+              var error = new Error(
+                "Specified user don't have view access already"
+              );
+              next(error);
+            } else {
+              table.view_access = viewAccess;
+              table
+                .save()
+                .then(() => {
+                  res.statusCode = 200;
+                  res.setHeader("Content-Type", "application/json");
+                  res.end("Successfully taken away view access");
+                })
+                .catch((err) => {
+                  next(err);
+                });
+            }
+          } else {
+            var error = new Error(
+              "You don't have privileges to take away anyone's view access"
+            );
+            next(error);
+          }
+        } else {
+          var error = new Error("Table with specified id not found");
+          next(error);
+        }
+      })
+      .catch((err) => {
+        next(err);
+      });
+  });
+
+// Remove edit access of a particular user
+accessRouter
+  .route("/removeAccess/edit")
+  .post(authenticate.verifyUser, (req, res, next) => {
+    let user = req.user;
+    let table = req.body.table;
+    let of_user = req.body.ofUser;
+    Table.findById(table)
+      .then((table) => {
+        if (table) {
+          if (table.user.toString() == user._id.toString()) {
+            let editAccess = table.edit_access;
+            var i = 0;
+            let f = false;
+            while (i < editAccess.length) {
+              if (editAccess[i].toString() == of_user.toString()) {
+                f = true;
+                editAccess.splice(i, 1);
+              } else {
+                ++i;
+              }
+            }
+            if (!f) {
+              var error = new Error(
+                "Specified user don't have edit access already"
+              );
+              next(error);
+            } else {
+              table.edit_access = editAccess;
+              table
+                .save()
+                .then(() => {
+                  res.statusCode = 200;
+                  res.setHeader("Content-Type", "application/json");
+                  res.end("Successfully taken away edit access");
+                })
+                .catch((err) => {
+                  next(err);
+                });
+            }
+          } else {
+            var error = new Error(
+              "You don't have privileges to take away anyone's edit access"
+            );
+            next(error);
+          }
+        } else {
+          var error = new Error("Table with specified id not found");
+          next(error);
+        }
+      })
+      .catch((err) => {
+        next(err);
+      });
+  });
 //Get edit access access info for a particular table for an user
 accessRouter
   .route("/editAccess")

@@ -20,7 +20,10 @@ var uploadRouter = require("./routes/uploadRouter");
 var notificationRouter = require("./routes/notification.js");
 app.use(logger("dev"));
 
-const connect = mongoose.connect(config.mongoUrl);
+const connect = mongoose.connect(config.mongoUrl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 connect.then(
   (db) => {
