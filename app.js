@@ -18,6 +18,8 @@ var accessRouter = require("./routes/access.js");
 var cors = require("./routes/cors");
 var uploadRouter = require("./routes/uploadRouter");
 var notificationRouter = require("./routes/notification.js");
+var saveTableRouter = require("./routes/saveTableRouter.js");
+
 app.use(logger("dev"));
 
 const connect = mongoose.connect(config.mongoUrl, {
@@ -81,6 +83,7 @@ app.use("/logs", logRouter);
 app.use("/upload", uploadRouter);
 app.use("/access", accessRouter);
 app.use("/notifications", notificationRouter);
+app.use("/savetable", saveTableRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

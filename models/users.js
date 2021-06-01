@@ -3,6 +3,9 @@ var Schema = mongoose.Schema;
 var passportLocalMongoose = require("passport-local-mongoose");
 
 var User = new Schema({
+  savedTables: {
+    type: [mongoose.Schema.Types.ObjectId],
+  },
   admin: {
     type: Boolean,
     default: false,
@@ -12,7 +15,7 @@ var User = new Schema({
   },
   email: {
     type: String,
-    required: true,
+    
   },
   firstName: {
     type: String,
@@ -22,11 +25,11 @@ var User = new Schema({
   },
   age: {
     type: Number,
-    required: true,
+   
   },
   sex: {
     type: String,
-    required: true,
+   
   },
   institutionName: {
     type: String,
