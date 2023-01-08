@@ -22,7 +22,7 @@ var saveTableRouter = require("./routes/saveTableRouter.js");
 
 app.use(logger("dev"));
 
-const connect = mongoose.connect(config.mongoUrl, {
+const connect = mongoose.connect(config.cloudUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
